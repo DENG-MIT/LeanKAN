@@ -87,7 +87,7 @@ KANgrid     = 5;
 KANnode     = 3;
 kan1 = Lux.Chain(
     KDense(size(xgrid)[1]*2, KANnode, KANgrid; use_base_act = true, basis_func, normalizer),
-    KDense_rm(KANnode, size(xgrid)[1]*2, KANgrid; use_base_act = true, basis_func, normalizer, mult_flag=2),
+    KDense_lean(KANnode, size(xgrid)[1]*2, KANgrid; use_base_act = true, basis_func, normalizer, mult_flag=2),
 )
 rng         = Random.default_rng()
 Random.seed!(rng, 0)

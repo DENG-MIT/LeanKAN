@@ -58,7 +58,7 @@ test_size=50
 basis_func = rbf      # rbf, rswaf
 normalizer = tanh_fast # sigmoid(_fast), tanh(_fast), softsign
 kan1 = Lux.Chain(
-    KDense_rm(4,  4, 4; use_base_act = true, basis_func, normalizer, mult_flag=2),
+    KDense_lean(4,  4, 4; use_base_act = true, basis_func, normalizer, mult_flag=2),
     #In order: 4 inputs, 4 outputs, 4 grid points. mult_flag encodes n^mu=2 (i.e. half and half multiplication and addition split)
 )
 pM , stM  = Lux.setup(rng, kan1)

@@ -2,7 +2,7 @@
 #======================================================#
 # Kolmogorov-Arnold Layer
 #======================================================#
-@concrete struct KDense_rm{use_base_act} <: LuxCore.AbstractLuxLayer 
+@concrete struct KDense_lean{use_base_act} <: LuxCore.AbstractLuxLayer 
     in_dims::Int
     out_dims::Int
     grid_len::Int
@@ -18,7 +18,7 @@
     init_W
 end
 
-function KDense_rm(
+function KDense_lean(
     in_dims::Int,
     out_dims::Int,
     grid_len::Int;
@@ -64,7 +64,7 @@ function KDense_rm(
         end
     end
 
-    KDense_rm{use_base_act}(
+    KDense_lean{use_base_act}(
         in_dims, out_dims, grid_len,
         normalizer, mult_flag, T.(grid_lims), T(denominator),
         basis_func, base_act, init_C, init_W,
@@ -73,7 +73,7 @@ end
 
 function LuxCore.initialparameters(
     rng::AbstractRNG,
-    l::KDense_rm{use_base_act}
+    l::KDense_lean{use_base_act}
 ) where{use_base_act}
     p = (;
         C = l.init_C(rng, l.out_dims, l.grid_len * l.in_dims), # [O, G, I]
@@ -89,18 +89,18 @@ function LuxCore.initialparameters(
     p
 end
 
-function LuxCore.initialstates(::AbstractRNG, l::KDense_rm,)
+function LuxCore.initialstates(::AbstractRNG, l::KDense_lean,)
     (;
         grid = collect(LinRange(l.grid_lims..., l.grid_len))
     )
 end
 
-function LuxCore.statelength(l::KDense_rm)
+function LuxCore.statelength(l::KDense_lean)
     l.grid_len
 end
 
 function LuxCore.parameterlength(
-    l::KDense_rm{use_base_act},
+    l::KDense_lean{use_base_act},
 ) where{use_base_act}
     len = l.in_dims * l.grid_len * l.out_dims
     if use_base_act
@@ -110,7 +110,7 @@ function LuxCore.parameterlength(
     len
 end
 
-function (l::KDense_rm{use_base_act})(x::AbstractArray, p, st) where{use_base_act}
+function (l::KDense_lean{use_base_act})(x::AbstractArray, p, st) where{use_base_act}
     size_in  = size(x)                          # [I, ..., batch,]
     size_out = (l.out_dims, size_in[2:end]...,) # [O, ..., batch,]
 
