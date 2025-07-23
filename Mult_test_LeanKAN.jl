@@ -26,8 +26,8 @@ mkpath(figpath)
 mkpath(ckptpath)
 
 #Load the correct KAN package
-include("src_v2/KolmogorovArnold_mult_add.jl")
-using .KolmogorovArnold_mult_add
+include("src/KolmogorovArnold.jl")
+using .KolmogorovArnold
 include("Activation_getter.jl")
 
 n_plot_save=1000
@@ -58,7 +58,7 @@ test_size=50
 basis_func = rbf      # rbf, rswaf
 normalizer = tanh_fast # sigmoid(_fast), tanh(_fast), softsign
 kan1 = Lux.Chain(
-    KDense(4,  4, 4; use_base_act = true, basis_func, normalizer, mult_flag=2),
+    KDense_rm(4,  4, 4; use_base_act = true, basis_func, normalizer, mult_flag=2),
     #In order: 4 inputs, 4 outputs, 4 grid points. mult_flag encodes n^mu=2 (i.e. half and half multiplication and addition split)
 )
 pM , stM  = Lux.setup(rng, kan1)
@@ -136,7 +136,7 @@ function plot_save(train_losses_1, train_losses_2, train_losses_3, train_losses_
     plot!(train_losses_4, yaxis=:log, c=:snow4, label="\$z_4\$ train", ylims=[1e-5, 1], framestyle = :box, grid=false)
     xlabel!("Epoch")
     ylabel!("Loss")
-    png(plt, string(figpath, "/loss_v2.png"))
+    png(plt, string(figpath, "/loss_LeanKAN.png"))
 end
 # TRAINING
 opt = Flux.Adam(1e-3)

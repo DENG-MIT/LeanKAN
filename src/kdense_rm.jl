@@ -2,7 +2,7 @@
 #======================================================#
 # Kolmogorov-Arnold Layer
 #======================================================#
-@concrete struct KDense{use_base_act} <: LuxCore.AbstractLuxLayer 
+@concrete struct KDense_rm{use_base_act} <: LuxCore.AbstractLuxLayer 
     in_dims::Int
     out_dims::Int
     grid_len::Int
@@ -18,13 +18,13 @@
     init_W
 end
 
-function KDense(
+function KDense_rm(
     in_dims::Int,
     out_dims::Int,
     grid_len::Int;
     #
     normalizer = tanh,
-    mult_flag=0,
+    mult_flag=2,
     grid_lims::NTuple{2, Real} = (-1.0f0, 1.0f0),
     denominator = Float32(2 / (grid_len - 1)),
     #
@@ -61,10 +61,10 @@ function KDense(
         base_act = NNlib.fast_act(base_act)
         if normalizer!=false
             normalizer = NNlib.fast_act(normalizer)
-        end  
+        end
     end
 
-    KDense{use_base_act}(
+    KDense_rm{use_base_act}(
         in_dims, out_dims, grid_len,
         normalizer, mult_flag, T.(grid_lims), T(denominator),
         basis_func, base_act, init_C, init_W,
@@ -73,7 +73,7 @@ end
 
 function LuxCore.initialparameters(
     rng::AbstractRNG,
-    l::KDense{use_base_act}
+    l::KDense_rm{use_base_act}
 ) where{use_base_act}
     p = (;
         C = l.init_C(rng, l.out_dims, l.grid_len * l.in_dims), # [O, G, I]
@@ -89,18 +89,18 @@ function LuxCore.initialparameters(
     p
 end
 
-function LuxCore.initialstates(::AbstractRNG, l::KDense,)
+function LuxCore.initialstates(::AbstractRNG, l::KDense_rm,)
     (;
         grid = collect(LinRange(l.grid_lims..., l.grid_len))
     )
 end
 
-function LuxCore.statelength(l::KDense)
+function LuxCore.statelength(l::KDense_rm)
     l.grid_len
 end
 
 function LuxCore.parameterlength(
-    l::KDense{use_base_act},
+    l::KDense_rm{use_base_act},
 ) where{use_base_act}
     len = l.in_dims * l.grid_len * l.out_dims
     if use_base_act
@@ -110,7 +110,7 @@ function LuxCore.parameterlength(
     len
 end
 
-function (l::KDense{use_base_act})(x::AbstractArray, p, st) where{use_base_act}
+function (l::KDense_rm{use_base_act})(x::AbstractArray, p, st) where{use_base_act}
     size_in  = size(x)                          # [I, ..., batch,]
     size_out = (l.out_dims, size_in[2:end]...,) # [O, ..., batch,]
 

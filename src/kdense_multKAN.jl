@@ -59,9 +59,7 @@ function KDense_mult(
     if allow_fast_activation
         basis_func = NNlib.fast_act(basis_func)
         base_act = NNlib.fast_act(base_act)
-        if normalizer!=false
-            normalizer = NNlib.fast_act(normalizer)
-        end  
+        normalizer = NNlib.fast_act(normalizer)
     end
 
     KDense_mult{use_base_act}(
@@ -82,7 +80,7 @@ function LuxCore.initialparameters(
     if use_base_act
         p = (;
             p...,
-            W = l.init_W(rng, l.out_dims+l.mult_dims, l.in_dims),
+            W = l.init_W(rng, l.out_dims + l.mult_dims, l.in_dims),
         )
     end
 
@@ -104,7 +102,7 @@ function LuxCore.parameterlength(
 ) where{use_base_act}
     len = l.in_dims * l.grid_len * (l.out_dims+l.mult_dims)
     if use_base_act
-        len += l.in_dims * (l.out_dims+l.mult_dims)
+        len += l.in_dims * l.out_dims
     end
 
     len
@@ -117,32 +115,23 @@ function (l::KDense_mult{use_base_act})(x::AbstractArray, p, st) where{use_base_
     x = reshape(x, l.in_dims, :)
     K = size(x, 2)
 
-    @inline _broadcast(f, args...) = @. f(args...)
-    if l.normalizer!=false
-        x_norm = _broadcast(l.normalizer, x)                  # ∈ [-1, 1]
-    else
-        x_norm=x
-    end
+    #@inline _broadcast(f, args...) = @. f(args...)
+    x_norm = _broadcast(l.normalizer, x)                  # ∈ [-1, 1]
     x_resh = reshape(x_norm, 1, :)                        # [1, K] SK: this should be [1, I]??? - does not affect the model
     basis  = l.basis_func(x_resh, st.grid, l.denominator) # [G, I * K]
     basis  = reshape(basis, l.grid_len * l.in_dims, K)    # [G * I, K]
-    spline_ = p.C * basis
+    spline = p.C * basis
 
-    if use_base_act
+    spline = if use_base_act
         base = p.W * l.base_act.(x)
-        spline_=spline_+base
+        spline + base
+    else
+        spline
     end
 
     mult_index  = l.out_dims - l.mult_dims + 1 
-    spline_mult = spline_[mult_index:mult_index+l.mult_dims-1].*spline_[mult_index+l.mult_dims:end]
-    y      = [spline_[1:mult_index-1]; spline_mult]
-
-    #y = if use_base_act
-    #    base = p.W * l.base_act.(x)
-    #    spline + base
-    #else
-    #    spline
-    #end
+    splinemult = spline[mult_index:mult_index+l.mult_dims-1].*spline[mult_index+l.mult_dims:end]
+    y           = [spline[1:mult_index-1]; splinemult]
 
     reshape(y, size_out), st
 end

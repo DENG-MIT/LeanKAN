@@ -27,7 +27,7 @@ mkpath(figpath)
 mkpath(ckptpath)
 
 #load the correct KAN package
-include("src_MultKAN/KolmogorovArnold.jl")
+include("src/KolmogorovArnold.jl")
 using .KolmogorovArnold
 include("Activation_getter.jl")
 
